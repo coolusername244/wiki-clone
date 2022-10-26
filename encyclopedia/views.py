@@ -110,5 +110,3 @@ def edit(request, entry):
             "form": form,
             "entry": entry
         })
-
-test
