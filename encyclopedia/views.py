@@ -1,6 +1,4 @@
-import re
-from turtle import isvisible
-from urllib.request import HTTPRedirectHandler
+import random
 
 from django import forms
 from django.contrib import messages
@@ -110,3 +108,15 @@ def edit(request, entry):
             "form": form,
             "entry": entry
         })
+
+
+def random_page(request):
+    n = random.randint(0, (len(util.list_entries()) -1))
+
+    entries = util.list_entries()
+    rand_entry = entries[n]
+    content = util.get_entry(rand_entry)
+    return render(request, "encyclopedia/content.html", {
+        "content": markdowner.convert(content),
+
+    })
