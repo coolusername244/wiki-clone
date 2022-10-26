@@ -1,3 +1,5 @@
+from django import forms
+from django.contrib import messages
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -6,6 +8,10 @@ from markdown2 import Markdown
 from . import util
 
 markdowner = Markdown()
+
+class NewEntryForm(forms.Form):
+    title = forms.CharField(label="Title")
+    content = forms.CharField(widget=forms.Textarea, label="Content")
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -49,3 +55,33 @@ def search(request):
             
     else:
         return render(request, "encyclopedia/search_results.html")        
+
+def create(request):
+
+    if request.method == "POST":
+        entries = util.list_entries()
+        form = NewEntryForm(request.POST)
+        
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            content = form.cleaned_data["content"]
+
+            if title in entries:
+                print("found return duplicate error")
+
+                messages.error(request, 'Entry with this name already exists')
+                return render(request, "encyclopedia/create.html", {
+                    "form": form
+                })
+            else:
+                util.save_entry(title, content)
+                new_entry = util.get_entry(title)
+                return render(request, "encyclopedia/content.html", {
+                    "content": new_entry
+                })
+
+    else:
+        return render(request, "encyclopedia/create.html", {
+            "form": NewEntryForm()
+        })
+
