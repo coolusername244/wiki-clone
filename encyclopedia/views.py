@@ -1,3 +1,7 @@
+import re
+from turtle import isvisible
+from urllib.request import HTTPRedirectHandler
+
 from django import forms
 from django.contrib import messages
 from django.shortcuts import render
@@ -13,6 +17,9 @@ class NewEntryForm(forms.Form):
     title = forms.CharField(label="Title")
     content = forms.CharField(widget=forms.Textarea, label="Content")
 
+class EditEntryForm(forms.Form):
+    content = forms.CharField(widget=forms.Textarea, label="Content")
+
 def index(request):
     return render(request, "encyclopedia/index.html", {
         "entries": util.list_entries()
@@ -23,7 +30,8 @@ def entry(request, entry):
 
     if content is not None:
         return render(request, "encyclopedia/content.html", {
-            "content": markdowner.convert(content)
+            "content": markdowner.convert(content),
+            "entry": entry
         })
     else:
         return render(request, "encyclopedia/noresult.html", {
@@ -77,11 +85,29 @@ def create(request):
                 util.save_entry(title, content)
                 new_entry = util.get_entry(title)
                 return render(request, "encyclopedia/content.html", {
-                    "content": new_entry
+                    "content": markdowner.convert(new_entry)
                 })
 
     else:
         return render(request, "encyclopedia/create.html", {
             "form": NewEntryForm()
+        })
+
+def edit(request, entry):
+    content = util.get_entry(entry)
+    print(entry)
+
+    if request.method == "POST":
+        form = EditEntryForm(request.POST)
+        if form.is_valid():
+            content = form.cleaned_data["content"]
+            util.save_entry(entry, content)
+            return HttpResponseRedirect(reverse("entry", args=[entry]))
+
+    else:
+        form = EditEntryForm(initial={'content': content})
+        return render(request, "encyclopedia/edit.html", {
+            "form": form,
+            "entry": entry
         })
 
