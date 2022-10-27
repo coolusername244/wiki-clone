@@ -4,11 +4,12 @@
 {% endblock %}
 {% block body %}
 
+<h1>You searched for: {{ entry }}</h1>
 <ul>
 {% for result in results %}
     <li><a href="wiki/{{ result }}">{{ result }}</a></li>
 {% empty %}
-    <h1>No results found</h1>
+    <h4>No results found</h4>
 {% endfor %}
 </ul>
 {% endblock %}
